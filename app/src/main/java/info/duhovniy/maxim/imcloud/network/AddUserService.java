@@ -17,11 +17,12 @@ public class AddUserService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        User user = new User(intent.getStringExtra(DBConstatnt.NICK),
-                intent.getStringExtra(DBConstatnt.EMAIL),
-                intent.getStringExtra(DBConstatnt.PASS),
-                intent.getStringExtra(DBConstatnt.REG_ID));
-        NetworkConstants.sendUserPostHttpRequest(user);
-
+        if (intent.hasExtra(DBConstatnt.EMAIL)) {
+            User user = new User(intent.getStringExtra(DBConstatnt.NICK),
+                    intent.getStringExtra(DBConstatnt.EMAIL),
+                    intent.getStringExtra(DBConstatnt.PASS),
+                    intent.getStringExtra(DBConstatnt.REG_ID));
+            NetworkConstants.sendUserPostHttpRequest(user);
+        }
     }
 }

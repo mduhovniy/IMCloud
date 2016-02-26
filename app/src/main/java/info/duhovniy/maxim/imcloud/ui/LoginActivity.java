@@ -4,11 +4,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -21,7 +18,6 @@ import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -48,6 +44,7 @@ import info.duhovniy.maxim.imcloud.db.DBHandler;
 import info.duhovniy.maxim.imcloud.gcm.QuickstartPreferences;
 import info.duhovniy.maxim.imcloud.gcm.RegistrationIntentService;
 import info.duhovniy.maxim.imcloud.network.NetworkConstants;
+import info.duhovniy.maxim.imcloud.network.SynchronizeContactsService;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -74,8 +71,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "LoginActivity";
-
-    private BroadcastReceiver mRegistrationBroadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,19 +100,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 attemptLogin();
             }
         });
-
-        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                showProgress(false);
-                if (intent.getAction().equals(QuickstartPreferences.REGISTRATION_COMPLETE)) {
-                    Snackbar.make(mLoginFormView, R.string.gcm_send_message, Snackbar.LENGTH_LONG).show();
-                } else {
-                    Snackbar.make(mLoginFormView, R.string.token_error_message, Snackbar.LENGTH_LONG).show();
-                }
-            }
-
-        };
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
@@ -383,11 +365,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
 
             if (success) {
+                // Start service that synchronize Contact Database
+                Intent intentSync = new Intent(getApplicationContext(), SynchronizeContactsService.class);
+                intentSync.putExtra(DBConstatnt.EMAIL, mEmail);
+                startService(intentSync);
                 // Start new CHAT activity
-                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                intent.putExtra(DBConstatnt.EMAIL, mEmail);
-                getApplicationContext().startActivity(intent);
+                Intent intentStart = new Intent(getApplicationContext(), ChatActivity.class);
+                intentStart.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                intentStart.putExtra(DBConstatnt.EMAIL, mEmail);
+                getApplicationContext().startActivity(intentStart);
 
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
@@ -400,19 +386,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                new IntentFilter(QuickstartPreferences.REGISTRATION_COMPLETE));
-    }
-
-    @Override
-    protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        super.onPause();
     }
 
     /**

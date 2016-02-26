@@ -119,7 +119,7 @@ public class DBHandler {
 
         try {
             cursor = db.query(DBConstatnt.CONTACT_TABLE, null, null, null, null, null, null,
-                    DBConstatnt.NICK + " ASC");
+                    null);
         } catch (SQLiteException e) {
             e.printStackTrace();
         }
@@ -141,26 +141,33 @@ public class DBHandler {
     }
 
     // returns a number of updated contacts
-    public int updateContacts(String s) {
+    // email - current session contact
+    public int updateContacts(JSONObject j, String email) {
         int result = 0;
         SQLiteDatabase db = helper.getWritableDatabase();
 
         try {
-            JSONArray jsonArray = new JSONObject(s).getJSONArray("user");
-            db.beginTransaction();
-            db.execSQL("DROP TABLE IF EXISTS " + DBConstatnt.CONTACT_TABLE + ";");
+            JSONArray jsonArray = j.getJSONArray("user");
+            if (jsonArray != null) {
+                db.beginTransaction();
+                db.execSQL("DELETE FROM " + DBConstatnt.CONTACT_TABLE + ";");
+                // db.execSQL(DBConstatnt.CONTACT_CREATE_QUERY);
 
-            for (int i = 0; i < jsonArray.length(); i++) {
-                ContentValues values = new ContentValues();
-                values.put(DBConstatnt.NICK, jsonArray.getJSONObject(i).getString(DBConstatnt.NICK));
-                values.put(DBConstatnt.EMAIL, jsonArray.getJSONObject(i).getString(DBConstatnt.EMAIL));
-                values.put(DBConstatnt.REG_ID, jsonArray.getJSONObject(i).getString(DBConstatnt.REG_ID));
 
-                if (db.insertOrThrow(DBConstatnt.CONTACT_TABLE, DBConstatnt.EMAIL, values) != -1)
-                    result++;
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    if (!jsonArray.getJSONObject(i).getString(DBConstatnt.EMAIL).equals(email)) {
+                        ContentValues values = new ContentValues();
+                        values.put(DBConstatnt.NICK, jsonArray.getJSONObject(i).getString(DBConstatnt.NICK));
+                        values.put(DBConstatnt.EMAIL, jsonArray.getJSONObject(i).getString(DBConstatnt.EMAIL));
+                        values.put(DBConstatnt.REG_ID, jsonArray.getJSONObject(i).getString(DBConstatnt.REG_ID));
+
+                        if (db.insertOrThrow(DBConstatnt.CONTACT_TABLE, DBConstatnt.EMAIL, values) != -1)
+                            result++;
+                    }
+                }
+
+                db.setTransactionSuccessful();
             }
-
-            db.setTransactionSuccessful();
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -168,6 +175,10 @@ public class DBHandler {
             e.getMessage();
         } finally {
             db.endTransaction();
+            /*
+            if(db.isOpen())
+                db.close();
+*/
         }
 
         return result;
