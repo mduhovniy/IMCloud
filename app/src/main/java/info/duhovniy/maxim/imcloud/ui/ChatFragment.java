@@ -19,27 +19,23 @@ import info.duhovniy.maxim.imcloud.network.SendService;
  */
 public class ChatFragment extends Fragment {
 
-    private static ChatFragment instance = new ChatFragment();
+    private static ChatFragment instance = null;
 
     public static ChatFragment getInstance() {
+        if (instance == null) {
+            instance = new ChatFragment();
+        }
         return instance;
     }
 
     //private RecyclerView recyclerView;
     private EditText to, msg;
     private String recipient = null;
-    private View rootView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.fragment_chat, container, false);
-
-/*
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.chat_recycler_view);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-*/
+        View rootView = inflater.inflate(R.layout.fragment_chat, container, false);
         FloatingActionButton composeMessageButton = (FloatingActionButton) rootView.findViewById(R.id.new_chat_fab);
 
         to = (EditText) rootView.findViewById(R.id.input_recipient);

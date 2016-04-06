@@ -18,18 +18,18 @@ import info.duhovniy.maxim.imcloud.R;
 import info.duhovniy.maxim.imcloud.db.DBHandler;
 import info.duhovniy.maxim.imcloud.network.NetworkConstants;
 
-/**
- * Created by maxduhovniy on 19/02/2016.
- */
+
 public class ContactsFragment extends Fragment {
 
-    private static ContactsFragment instance = new ContactsFragment();
+    private static ContactsFragment instance = null;
 
     public static ContactsFragment getInstance() {
+        if(instance == null) {
+            instance = new ContactsFragment();
+        }
         return instance;
     }
 
-    private View rootView;
     private RecyclerView recyclerView;
     private FloatingActionButton addContactButton;
     private ContactListAdapter mAdapter;
@@ -39,7 +39,7 @@ public class ContactsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.fragment_contacts, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_contacts, container, false);
 
         recyclerView = (RecyclerView) rootView.findViewById(R.id.contacts_recycler_view);
         recyclerView.setHasFixedSize(true);

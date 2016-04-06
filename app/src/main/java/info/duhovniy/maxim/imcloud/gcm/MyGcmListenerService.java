@@ -51,7 +51,7 @@ public class MyGcmListenerService extends GcmListenerService {
          * In some cases it may be useful to show a notification indicating to the user
          * that a message was received.
          */
-        sendNotification(message);
+        sendNotification(from, message);
         // [END_EXCLUDE]
     }
     // [END receive_message]
@@ -61,8 +61,8 @@ public class MyGcmListenerService extends GcmListenerService {
      *
      * @param message GCM message received.
      */
-    private void sendNotification(String message) {
-        // TODO: replace LoginActivity.class for Chat activity or fragment
+    private void sendNotification(String from, String message) {
+
         Intent intent = new Intent(this, ChatActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
@@ -71,7 +71,7 @@ public class MyGcmListenerService extends GcmListenerService {
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(android.R.drawable.ic_dialog_alert)
-                .setContentTitle("GCM Message")
+                .setContentTitle(from)
                 .setContentText(message)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
